@@ -71,7 +71,16 @@ func (h *Handler) activateRecursiveGridModeWithAction(actionStr *string) {
 	h.SetModeRecursiveGrid()
 
 	h.logger.Info("Recursive-grid mode activated", zap.String("action", actionString))
-	h.logger.Info("Press u/i/j/k to select cells, backspace to backtrack, escape to exit")
+
+	backtrackKey := h.config.General.BacktrackKey
+	if backtrackKey == "" {
+		backtrackKey = "backspace"
+	}
+
+	h.logger.Info(
+		"Press recursive-grid keys to select cells, backtrack, and exit",
+		zap.String("backtrack_key", backtrackKey),
+	)
 
 	h.startModeIndicatorPolling(domain.ModeRecursiveGrid)
 }
@@ -112,6 +121,8 @@ func (h *Handler) initializeRecursiveGridManager(screenBounds image.Rectangle) {
 		},
 		h.logger,
 	)
+
+	h.recursiveGrid.Manager.SetBacktrackKey(h.config.General.BacktrackKey)
 }
 
 // handleRecursiveGridKey handles key processing for recursive-grid mode.

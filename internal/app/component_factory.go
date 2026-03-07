@@ -158,6 +158,7 @@ func (f *ComponentFactory) CreateGridComponent(
 		},
 		f.logger,
 	)
+	component.Manager.SetBacktrackKey(f.config.General.BacktrackKey)
 
 	return component, nil
 }

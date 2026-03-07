@@ -378,6 +378,24 @@ func TestManager_InputValidation(t *testing.T) {
 	}
 }
 
+func TestManager_CustomBacktrackKey(t *testing.T) {
+	logger := logger.Get()
+	testGrid := grid.NewGrid("ABC", image.Rect(0, 0, 100, 100), logger)
+	manager := grid.NewManager(testGrid, 2, 2, "ab", ".", nil, nil, logger)
+	manager.SetBacktrackKey(",")
+
+	_, _ = manager.HandleInput("A")
+
+	_, complete := manager.HandleInput(",")
+	if complete {
+		t.Error("Expected not complete after custom backtrack key")
+	}
+
+	if input := manager.CurrentInput(); input != "" {
+		t.Errorf("CurrentInput() = %q, want '' after custom backtrack key", input)
+	}
+}
+
 func TestManager_PrefixValidationRegression(t *testing.T) {
 	// Regression test specifically for the issue where typing invalid sequences
 	// would cause the grid to become empty

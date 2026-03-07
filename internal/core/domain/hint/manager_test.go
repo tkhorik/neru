@@ -95,6 +95,22 @@ func TestManager_Backspace(t *testing.T) {
 	}
 }
 
+func TestManager_CustomBacktrackKey(t *testing.T) {
+	element, _ := element.NewElement(element.ID("1"), image.Rect(0, 0, 10, 10), element.RoleButton)
+	h1, _ := hint.NewHint("AA", element, image.Point{0, 0})
+	collection := hint.NewCollection([]*hint.Interface{h1})
+	manager := hint.NewManager(logger.Get(), nil)
+	manager.SetHints(collection)
+	manager.SetBacktrackKey(",")
+
+	manager.HandleInput("A")
+	manager.HandleInput(",")
+
+	if manager.CurrentInput() != "" {
+		t.Errorf("Expected empty input after custom backtrack key, got %q", manager.CurrentInput())
+	}
+}
+
 func TestHintManager_RouterIntegration(t *testing.T) {
 	logger := logger.Get()
 

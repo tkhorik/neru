@@ -180,6 +180,35 @@ func TestManagerHandleInputBacktrack(t *testing.T) {
 	assert.Equal(t, 0, manager.CurrentDepth(), "Depth should be 0 after backtrack")
 }
 
+func TestManagerHandleInputCustomBacktrackKey(t *testing.T) {
+	bounds := image.Rect(0, 0, 100, 100)
+	logger := zap.NewNop()
+
+	updateCalled := false
+	manager := recursivegrid.NewManager(
+		bounds,
+		"uijk",
+		",",
+		[]string{"escape"},
+		func() { updateCalled = true },
+		nil,
+		logger,
+	)
+	manager.SetBacktrackKey(".")
+
+	manager.HandleInput("u")
+	assert.Equal(t, 1, manager.CurrentDepth())
+
+	updateCalled = false
+	point, completed, shouldExit := manager.HandleInput(".")
+
+	assert.NotEqual(t, image.Point{}, point, "Should return center point")
+	assert.False(t, completed, "Should not be completed")
+	assert.False(t, shouldExit, "Should not exit")
+	assert.True(t, updateCalled, "Update callback should be called")
+	assert.Equal(t, 0, manager.CurrentDepth(), "Depth should be 0 after custom backtrack")
+}
+
 func TestManagerHandleInputUnmappedKey(t *testing.T) {
 	bounds := image.Rect(0, 0, 100, 100)
 	logger := zap.NewNop()

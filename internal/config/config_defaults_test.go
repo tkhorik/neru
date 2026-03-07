@@ -27,4 +27,14 @@ func TestDefaultConfig(t *testing.T) {
 			)
 		}
 	})
+
+	t.Run("General Backtrack Key Defaults", func(t *testing.T) {
+		if cfg.General.BacktrackKey != config.KeyNameBackspace {
+			t.Errorf(
+				"Expected General.BacktrackKey to be %q by default, got %q",
+				config.KeyNameBackspace,
+				cfg.General.BacktrackKey,
+			)
+		}
+	})
 }

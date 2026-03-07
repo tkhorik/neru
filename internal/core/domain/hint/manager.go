@@ -29,6 +29,7 @@ type Manager struct {
 
 	// Performance optimization: reuse slice buffer for filtered hints
 	cachedFilteredHints []*Interface
+	backtrackKey        string
 }
 
 const (
@@ -48,6 +49,7 @@ func NewManager(logger *zap.Logger, externalMu *sync.Mutex) *Manager {
 		},
 		debounceDuration: DefaultDebounceDuration,
 		externalMu:       externalMu,
+		backtrackKey:     config.KeyNameBackspace,
 	}
 }
 
@@ -57,6 +59,11 @@ func (m *Manager) SetUpdateCallback(callback func([]*Interface)) {
 	defer m.mu.Unlock()
 
 	m.onUpdate = callback
+}
+
+// SetBacktrackKey updates the key used for input correction.
+func (m *Manager) SetBacktrackKey(backtrackKey string) {
+	m.backtrackKey = backtrackKey
 }
 
 // SetHints updates the current hint collection and resets the input state.
@@ -118,8 +125,8 @@ func (m *Manager) HandleInput(key string) (*Interface, bool) {
 			zap.String("current_input", m.CurrentInput()))
 	}
 
-	// Handle backspace to allow input correction
-	if config.IsBackspaceKey(key) {
+	// Handle configured backtrack key to allow input correction.
+	if config.IsBacktrackKey(key, m.backtrackKey) {
 		if len(m.CurrentInput()) > 0 {
 			m.SetCurrentInput(m.CurrentInput()[:len(m.CurrentInput())-1])
 

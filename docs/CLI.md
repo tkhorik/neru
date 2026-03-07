@@ -271,7 +271,7 @@ Recursive grid provides recursive cell-based navigation that works anywhere on s
 | `i`                    | Upper-right cell               |
 | `j`                    | Lower-left cell                |
 | `k`                    | Lower-right cell               |
-| `Backspace` / `Delete` | Move up one depth and recenter |
+| `general.backtrack_key` (default: `Backspace`/`Delete`) | Move up one depth and recenter |
 | `,` (default)          | Reset to initial center        |
 | `Esc`                  | Exit mode                      |
 
@@ -280,7 +280,7 @@ Recursive grid provides recursive cell-based navigation that works anywhere on s
 ```bash
 neru recursive_grid
 # Press u/i/j/k to narrow selection
-# Press backspace to move up a level
+# Press your backtrack key (default backspace/delete) to move up a level
 # Press , to reset to initial center
 ```
 

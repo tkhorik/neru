@@ -7,6 +7,9 @@ excluded_apps = []
 # Check Accessibility permission on startup; exits with guidance if missing.
 accessibility_check_on_start = true
 
+# Key used for input correction/backtracking in hints, grid, and recursive-grid modes.
+backtrack_key = "backspace"
+
 [hotkeys]
 "Cmd+Shift+Space" = "recursive_grid"
 "Cmd+Shift+S" = "scroll"

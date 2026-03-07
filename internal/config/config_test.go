@@ -553,6 +553,61 @@ func TestIsResetKey_WithFullwidthChars(t *testing.T) {
 	}
 }
 
+func TestIsBacktrackKey(t *testing.T) {
+	tests := []struct {
+		name         string
+		key          string
+		backtrackKey string
+		want         bool
+	}{
+		{
+			name:         "default fallback matches delete sequence",
+			key:          "\x7f",
+			backtrackKey: "",
+			want:         true,
+		},
+		{
+			name:         "named backspace matches delete synonym",
+			key:          "delete",
+			backtrackKey: "backspace",
+			want:         true,
+		},
+		{
+			name:         "custom single key",
+			key:          ",",
+			backtrackKey: ",",
+			want:         true,
+		},
+		{
+			name:         "custom modifier combo case-insensitive",
+			key:          "ctrl+h",
+			backtrackKey: "Ctrl+H",
+			want:         true,
+		},
+		{
+			name:         "non matching key",
+			key:          "backspace",
+			backtrackKey: ".",
+			want:         false,
+		},
+	}
+
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			got := config.IsBacktrackKey(testCase.key, testCase.backtrackKey)
+			if got != testCase.want {
+				t.Errorf(
+					"IsBacktrackKey(%q, %q) = %v, want %v",
+					testCase.key,
+					testCase.backtrackKey,
+					got,
+					testCase.want,
+				)
+			}
+		})
+	}
+}
+
 func TestIsExitKey_WithFullwidthChars(t *testing.T) {
 	tests := []struct {
 		name     string

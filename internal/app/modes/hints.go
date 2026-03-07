@@ -225,6 +225,8 @@ func (h *Handler) activateHintModeInternal(preserveActionMode bool, actionStr *s
 		h.hints.Context.SetManager(manager)
 	}
 
+	h.hints.Context.Manager().SetBacktrackKey(h.config.General.BacktrackKey)
+
 	// Initialize domain router for hint navigation
 	exitKeys := h.config.General.ModeExitKeys
 	if len(exitKeys) == 0 {

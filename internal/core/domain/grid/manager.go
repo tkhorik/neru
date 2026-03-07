@@ -25,6 +25,8 @@ type Manager struct {
 	subRows int
 	subCols int
 	subKeys string
+	// backtrackKey handles deleting input/exiting subgrid.
+	backtrackKey string
 }
 
 // NewManager initializes a new grid manager with the specified configuration.
@@ -48,14 +50,15 @@ func NewManager(
 		BaseManager: domain.BaseManager{
 			Logger: logger,
 		},
-		grid:        grid,
-		labelLength: labelLength,
-		onUpdate:    onUpdate,
-		onShowSub:   onShowSub,
-		subRows:     subRows,
-		subCols:     subCols,
-		subKeys:     strings.ToUpper(strings.TrimSpace(subKeys)),
-		resetKey:    resetKey,
+		grid:         grid,
+		labelLength:  labelLength,
+		onUpdate:     onUpdate,
+		onShowSub:    onShowSub,
+		subRows:      subRows,
+		subCols:      subCols,
+		subKeys:      strings.ToUpper(strings.TrimSpace(subKeys)),
+		resetKey:     resetKey,
+		backtrackKey: config.KeyNameBackspace,
 	}
 }
 
@@ -78,8 +81,8 @@ func (m *Manager) HandleInput(key string) (image.Point, bool) {
 		return image.Point{}, false
 	}
 
-	// Handle backspace for input correction
-	if config.IsBackspaceKey(key) {
+	// Handle configured backtrack key for input correction.
+	if config.IsBacktrackKey(key, m.backtrackKey) {
 		return m.handleBackspace()
 	}
 
@@ -169,6 +172,11 @@ func (m *Manager) UpdateGrid(g *Grid) {
 // UpdateSubKeys updates the subgrid keys used for subgrid selection.
 func (m *Manager) UpdateSubKeys(subKeys string) {
 	m.subKeys = strings.ToUpper(strings.TrimSpace(subKeys))
+}
+
+// SetBacktrackKey updates the key used for input correction/backtracking.
+func (m *Manager) SetBacktrackKey(backtrackKey string) {
+	m.backtrackKey = backtrackKey
 }
 
 // hasMatchingCoordinate checks if any grid cell coordinate starts with the given prefix.

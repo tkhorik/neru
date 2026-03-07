@@ -70,6 +70,51 @@ func TestConfig_ValidateGeneral(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "backtrack key named value - valid",
+			config: config.Config{
+				General: config.GeneralConfig{
+					BacktrackKey: "backspace",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "backtrack key modifier combo - valid",
+			config: config.Config{
+				General: config.GeneralConfig{
+					BacktrackKey: "Ctrl+H",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "backtrack key single character - valid",
+			config: config.Config{
+				General: config.GeneralConfig{
+					BacktrackKey: ",",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "backtrack key single space - valid",
+			config: config.Config{
+				General: config.GeneralConfig{
+					BacktrackKey: " ",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "backtrack key invalid format - invalid",
+			config: config.Config{
+				General: config.GeneralConfig{
+					BacktrackKey: "invalid_key_name",
+				},
+			},
+			wantErr: true,
+		},
 	}
 
 	for _, testCase := range tests {

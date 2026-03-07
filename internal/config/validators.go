@@ -302,15 +302,6 @@ func (c *Config) ValidateGrid() error {
 			)
 		}
 
-		// Backspace and delete are reserved for input correction
-		normalizedResetKey := NormalizeKeyForComparison(resetKey)
-		if normalizedResetKey == KeyNameBackspace || normalizedResetKey == KeyNameDelete {
-			return derrors.New(
-				derrors.CodeInvalidConfig,
-				"grid.reset_key cannot be 'backspace' or 'delete'; these keys are reserved for input correction",
-			)
-		}
-
 		// Single-character reset key cannot be in grid characters
 		if strings.Contains(strings.ToLower(c.Grid.Characters), strings.ToLower(resetKey)) {
 			return derrors.New(
@@ -318,6 +309,19 @@ func (c *Config) ValidateGrid() error {
 				"grid.characters cannot contain '"+resetKey+"' as it is reserved for reset",
 			)
 		}
+	}
+
+	backtrackKey := c.General.BacktrackKey
+	if backtrackKey == "" {
+		backtrackKey = KeyNameBackspace
+	}
+
+	if IsResetKey(resetKey, backtrackKey) {
+		return derrors.Newf(
+			derrors.CodeInvalidConfig,
+			"grid.reset_key cannot match general.backtrack_key ('%s')",
+			backtrackKey,
+		)
 	}
 
 	for _, r := range c.Grid.Characters {
@@ -909,6 +913,23 @@ func (c *Config) checkExitKeysResetKeyConflicts() error {
 		)
 	}
 
+	// Check backtrack key conflict for modes that use backtracking/input correction.
+	if c.Hints.Enabled || c.Grid.Enabled || c.RecursiveGrid.Enabled {
+		backtrackKey := c.General.BacktrackKey
+		if backtrackKey == "" {
+			backtrackKey = KeyNameBackspace
+		}
+
+		normalizedBacktrackKey := NormalizeKeyForComparison(backtrackKey)
+		if slices.Contains(normalizedExitKeys, normalizedBacktrackKey) {
+			return derrors.Newf(
+				derrors.CodeInvalidConfig,
+				"general.mode_exit_keys contains a key that conflicts with general.backtrack_key ('%s'); the exit key will always take priority, making backtracking non-functional",
+				backtrackKey,
+			)
+		}
+	}
+
 	// Check grid reset key conflict (only when grid mode is enabled)
 	if c.Grid.Enabled {
 		gridResetKey := c.Grid.ResetKey
@@ -1131,15 +1152,6 @@ func (c *Config) ValidateRecursiveGrid() error {
 			)
 		}
 
-		// Backspace and delete are reserved for input correction
-		normalizedResetKey := NormalizeKeyForComparison(resetKey)
-		if normalizedResetKey == KeyNameBackspace || normalizedResetKey == KeyNameDelete {
-			return derrors.New(
-				derrors.CodeInvalidConfig,
-				"recursive_grid.reset_key cannot be 'backspace' or 'delete'; these keys are reserved for input correction",
-			)
-		}
-
 		// Single-character reset key cannot be in recursive_grid keys
 		if strings.Contains(strings.ToLower(c.RecursiveGrid.Keys), strings.ToLower(resetKey)) {
 			return derrors.New(
@@ -1147,6 +1159,19 @@ func (c *Config) ValidateRecursiveGrid() error {
 				"recursive_grid.keys cannot contain '"+resetKey+"' as it is reserved for reset",
 			)
 		}
+	}
+
+	backtrackKey := c.General.BacktrackKey
+	if backtrackKey == "" {
+		backtrackKey = KeyNameBackspace
+	}
+
+	if IsResetKey(resetKey, backtrackKey) {
+		return derrors.Newf(
+			derrors.CodeInvalidConfig,
+			"recursive_grid.reset_key cannot match general.backtrack_key ('%s')",
+			backtrackKey,
+		)
 	}
 
 	// Validate styling

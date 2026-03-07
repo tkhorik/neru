@@ -223,4 +223,6 @@ func (h *Handler) initializeGridManager(gridInstance *domainGrid.Grid) {
 		},
 		h.logger,
 	)
+
+	h.grid.Manager.SetBacktrackKey(h.config.General.BacktrackKey)
 }

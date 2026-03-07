@@ -14,14 +14,15 @@ import (
 type Manager struct {
 	domain.BaseManager
 
-	grid       *RecursiveGrid
-	keys       string            // Key mapping (e.g., "uijk")
-	gridCols   int               // Number of grid columns
-	gridRows   int               // Number of grid rows
-	onUpdate   func()            // Callback for overlay updates
-	onComplete func(image.Point) // Callback when selection is complete
-	resetKey   string
-	exitKeys   []string
+	grid         *RecursiveGrid
+	keys         string            // Key mapping (e.g., "uijk")
+	gridCols     int               // Number of grid columns
+	gridRows     int               // Number of grid rows
+	onUpdate     func()            // Callback for overlay updates
+	onComplete   func(image.Point) // Callback when selection is complete
+	resetKey     string
+	backtrackKey string
+	exitKeys     []string
 }
 
 // NewManager creates a recursive-grid manager with the specified configuration.
@@ -100,13 +101,14 @@ func NewManagerWithConfig(
 			gridCols,
 			gridRows,
 		),
-		keys:       strings.ToLower(keys),
-		gridCols:   gridCols,
-		gridRows:   gridRows,
-		onUpdate:   onUpdate,
-		onComplete: onComplete,
-		resetKey:   resetKey,
-		exitKeys:   exitKeys,
+		keys:         strings.ToLower(keys),
+		gridCols:     gridCols,
+		gridRows:     gridRows,
+		onUpdate:     onUpdate,
+		onComplete:   onComplete,
+		resetKey:     resetKey,
+		backtrackKey: config.KeyNameBackspace,
+		exitKeys:     exitKeys,
 	}
 }
 
@@ -146,8 +148,8 @@ func (m *Manager) HandleInput(key string) (image.Point, bool, bool) {
 		return m.grid.CurrentCenter(), false, false
 	}
 
-	// Handle backspace/delete for backtracking
-	if config.IsBackspaceKey(key) {
+	// Handle configured backtrack key for backtracking.
+	if config.IsBacktrackKey(key, m.backtrackKey) {
 		if m.grid.Backtrack() {
 			m.Logger.Debug("Backtracked in recursive-grid mode",
 				zap.Int("new_depth", m.grid.CurrentDepth()))
@@ -206,6 +208,11 @@ func (m *Manager) HandleInput(key string) (image.Point, bool, bool) {
 func (m *Manager) Reset() {
 	m.SetCurrentInput("")
 	m.grid.Reset()
+}
+
+// SetBacktrackKey updates the key used for going up one recursive-grid level.
+func (m *Manager) SetBacktrackKey(backtrackKey string) {
+	m.backtrackKey = backtrackKey
 }
 
 // CurrentGrid returns the underlying RecursiveGrid instance.

@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/BurntSushi/toml"
 	derrors "github.com/y3owk1n/neru/internal/core/errors"
@@ -115,7 +116,17 @@ func IsResetKey(key, resetKey string) bool {
 // IsBackspaceKey checks if a key is a backspace/delete key.
 // This normalizes all variations: "\x7f", "delete", "backspace", "Delete", "Backspace", etc.
 func IsBackspaceKey(key string) bool {
-	return NormalizeKeyForComparison(key) == KeyNameDelete
+	return IsBacktrackKey(key, KeyNameBackspace)
+}
+
+// IsBacktrackKey checks if key matches the configured backtrack key.
+// Empty backtrackKey falls back to "backspace" for backward compatibility.
+func IsBacktrackKey(key, backtrackKey string) bool {
+	if backtrackKey == "" {
+		backtrackKey = KeyNameBackspace
+	}
+
+	return NormalizeKeyForComparison(key) == NormalizeKeyForComparison(backtrackKey)
 }
 
 // ActionConfig defines the visual and behavioral settings for action mode.
@@ -158,6 +169,7 @@ type GeneralConfig struct {
 	AccessibilityCheckOnStart bool     `json:"accessibilityCheckOnStart" toml:"accessibility_check_on_start"`
 	RestoreCursorPosition     bool     `json:"restoreCursorPosition"     toml:"restore_cursor_position"`
 	CenterCursorPosition      bool     `json:"centerCursorPosition"      toml:"center_cursor_position"`
+	BacktrackKey              string   `json:"backtrackKey"              toml:"backtrack_key"`
 	ModeExitKeys              []string `json:"modeExitKeys"              toml:"mode_exit_keys"`
 	HideOverlayInScreenShare  bool     `json:"hideOverlayInScreenShare"  toml:"hide_overlay_in_screen_share"`
 	KBLayoutToUse             string   `json:"kbLayoutToUse"             toml:"kb_layout_to_use"`
@@ -441,6 +453,47 @@ func (c *Config) ValidateGeneral() error {
 			derrors.CodeInvalidConfig,
 			"restore_cursor_position and center_cursor_position cannot both be enabled",
 		)
+	}
+
+	backtrackKey := c.General.BacktrackKey
+	if backtrackKey != "" {
+		validNamedKeys := map[string]bool{
+			"escape":    true,
+			"esc":       true,
+			"return":    true,
+			"enter":     true,
+			"tab":       true,
+			"space":     true,
+			"backspace": true,
+			"delete":    true,
+			"home":      true,
+			"end":       true,
+			"pageup":    true,
+			"pagedown":  true,
+		}
+
+		switch {
+		case validNamedKeys[strings.ToLower(backtrackKey)]:
+			// Valid named key.
+		case strings.Contains(backtrackKey, "+"):
+			err := validateModifierCombo(backtrackKey, "general.backtrack_key")
+			if err != nil {
+				return err
+			}
+		case len(backtrackKey) == 1:
+			if rune(backtrackKey[0]) > unicode.MaxASCII {
+				return derrors.New(
+					derrors.CodeInvalidConfig,
+					"general.backtrack_key must be an ASCII character",
+				)
+			}
+		default:
+			return derrors.Newf(
+				derrors.CodeInvalidConfig,
+				"general.backtrack_key = '%s' is invalid; must be a named key (e.g. 'backspace'), modifier combo (e.g. 'Ctrl+H'), or single character",
+				backtrackKey,
+			)
+		}
 	}
 
 	if c.General.KBLayoutToUse != "" && strings.TrimSpace(c.General.KBLayoutToUse) == "" {

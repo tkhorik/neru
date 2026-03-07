@@ -173,6 +173,7 @@ Core behavior settings that affect all Neru functionality.
 | `accessibility_check_on_start` | bool  | `true`       | Verify accessibility permissions on launch |
 | `restore_cursor_position`      | bool  | `false`      | Return cursor to pre-mode position on exit |
 | `center_cursor_position`       | bool  | `false`      | Center cursor on current screen on exit    |
+| `backtrack_key`                | string | `"backspace"` | Key for input correction/backtracking       |
 | `kb_layout_to_use`             | string | `""`         | Optional InputSourceID for layout mapping  |
 | `mode_exit_keys`               | array | `["escape"]` | Keys that exit any active mode             |
 | `hide_overlay_in_screen_share` | bool  | `false`      | Hide overlay in screen sharing apps        |
@@ -270,6 +271,21 @@ mode_exit_keys = ["escape"]           # default
 - Plain: `escape`, `return`, `tab`, `space`, `backspace`, `delete`
 - Navigation: `home`, `end`, `pageup`, `pagedown`
 - With modifiers: `Ctrl+C`, `Cmd+Q`, `Alt+X`
+
+### backtrack_key
+
+Key used for input correction/backtracking in hints, grid, and recursive-grid modes.
+
+```toml
+[general]
+backtrack_key = "backspace"      # default
+# backtrack_key = "delete"
+# backtrack_key = ","
+# backtrack_key = "Ctrl+H"
+```
+
+This key is checked after `mode_exit_keys` and before mode-specific input.
+Avoid setting it to the same value as `mode_exit_keys`, `grid.reset_key`, or `recursive_grid.reset_key`.
 
 ### hide_overlay_in_screen_share
 
@@ -662,6 +678,8 @@ reset_key = " "         # default (space)
 # reset_key = "Ctrl+R"  # modifier combo
 ```
 
+`grid.reset_key` must not match `general.backtrack_key`.
+
 ---
 
 ## Recursive Grid Mode (Recommended)
@@ -732,9 +750,11 @@ keys = "gcrhtn"  # 6 unique characters
 | Key                                    | Action                   |
 | -------------------------------------- | ------------------------ |
 | Cell keys (`u`,`i`,`j`,`k` by default) | Narrow to that cell      |
-| `Backspace` or `Delete`                | Go up one level          |
+| Backtrack key (`general.backtrack_key`) | Go up one level          |
 | Reset key (` ` / space by default)     | Return to initial center |
 | `Esc`                                  | Exit mode                |
+
+`recursive_grid.reset_key` must not match `general.backtrack_key`.
 
 ### Cell Key Mapping
 

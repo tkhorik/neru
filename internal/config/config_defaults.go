@@ -259,6 +259,7 @@ func DefaultConfig() *Config {
 			AccessibilityCheckOnStart: true,
 			RestoreCursorPosition:     false,
 			CenterCursorPosition:      false,
+			BacktrackKey:              KeyNameBackspace,
 			ModeExitKeys:              []string{"escape"},
 			HideOverlayInScreenShare:  false,
 			KBLayoutToUse:             "",

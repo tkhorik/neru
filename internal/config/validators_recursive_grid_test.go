@@ -236,7 +236,7 @@ func TestConfig_ValidateRecursiveGrid(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "recursive_grid with reserved reset_key (backspace)",
+			name: "recursive_grid reset_key conflicts with default backtrack key",
 			config: config.Config{
 				RecursiveGrid: config.RecursiveGridConfig{
 					Enabled:       true,
@@ -246,10 +246,30 @@ func TestConfig_ValidateRecursiveGrid(t *testing.T) {
 					MinSizeWidth:  10,
 					MinSizeHeight: 10,
 					MaxDepth:      10,
-					ResetKey:      "backspace",
+					ResetKey:      "\x7f",
 				},
 			},
 			wantErr: true,
+		},
+		{
+			name: "recursive_grid delete reset_key allowed with custom backtrack key",
+			config: config.Config{
+				General: config.GeneralConfig{
+					BacktrackKey: ",",
+				},
+				RecursiveGrid: config.RecursiveGridConfig{
+					Enabled:       true,
+					GridCols:      2,
+					GridRows:      2,
+					Keys:          "uijk",
+					MinSizeWidth:  10,
+					MinSizeHeight: 10,
+					MaxDepth:      10,
+					FontSize:      10,
+					ResetKey:      "\x7f",
+				},
+			},
+			wantErr: false,
 		},
 		{
 			name: "recursive_grid with conflict between keys and reset_key",

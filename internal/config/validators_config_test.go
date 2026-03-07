@@ -686,8 +686,60 @@ func TestConfig_ValidateGrid(t *testing.T) {
 	}
 }
 
+func TestConfig_ValidateGrid_BacktrackKeyConflicts(t *testing.T) {
+	tests := []struct {
+		name    string
+		cfg     func() config.Config
+		wantErr bool
+	}{
+		{
+			name: "default backtrack key conflicts with delete reset key",
+			cfg: func() config.Config {
+				cfg := *config.DefaultConfig()
+				cfg.Grid.ResetKey = "\x7f"
+
+				return cfg
+			},
+			wantErr: true,
+		},
+		{
+			name: "custom backtrack key allows delete reset key",
+			cfg: func() config.Config {
+				cfg := *config.DefaultConfig()
+				cfg.General.BacktrackKey = ","
+				cfg.Grid.ResetKey = "\x7f"
+
+				return cfg
+			},
+			wantErr: false,
+		},
+		{
+			name: "matching modifier combo reset and backtrack keys conflict",
+			cfg: func() config.Config {
+				cfg := *config.DefaultConfig()
+				cfg.General.BacktrackKey = "Ctrl+H"
+				cfg.Grid.ResetKey = "Ctrl+H"
+
+				return cfg
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			cfg := testCase.cfg()
+
+			err := cfg.ValidateGrid()
+			if (err != nil) != testCase.wantErr {
+				t.Errorf("Config.ValidateGrid() error = %v, wantErr %v", err, testCase.wantErr)
+			}
+		})
+	}
+}
+
 // TestConfig_ValidateModeExitKeys_ResetKeyConflicts tests that mode exit keys
-// cannot conflict with grid or recursive-grid reset keys.
+// cannot conflict with backtrack, grid reset, or recursive-grid reset keys.
 func TestConfig_ValidateModeExitKeys_ResetKeyConflicts(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -703,6 +755,44 @@ func TestConfig_ValidateModeExitKeys_ResetKeyConflicts(t *testing.T) {
 				return cfg
 			},
 			wantErr: true,
+		},
+		{
+			name: "backspace exit key conflicts with default backtrack key",
+			config: func() config.Config {
+				cfg := *config.DefaultConfig()
+				cfg.General.ModeExitKeys = []string{"escape", "backspace"}
+				cfg.Grid.ResetKey = ","
+				cfg.RecursiveGrid.ResetKey = "."
+
+				return cfg
+			},
+			wantErr: true,
+		},
+		{
+			name: "custom backtrack key conflict with exit keys",
+			config: func() config.Config {
+				cfg := *config.DefaultConfig()
+				cfg.General.BacktrackKey = ","
+				cfg.General.ModeExitKeys = []string{"escape", ","}
+				cfg.Grid.ResetKey = "."
+				cfg.RecursiveGrid.ResetKey = "/"
+
+				return cfg
+			},
+			wantErr: true,
+		},
+		{
+			name: "no backtrack conflict when all input modes disabled",
+			config: func() config.Config {
+				cfg := *config.DefaultConfig()
+				cfg.Hints.Enabled = false
+				cfg.Grid.Enabled = false
+				cfg.RecursiveGrid.Enabled = false
+				cfg.General.ModeExitKeys = []string{"escape", "backspace"}
+
+				return cfg
+			},
+			wantErr: false,
 		},
 		{
 			name: "literal space exit key rejected as empty after trim",

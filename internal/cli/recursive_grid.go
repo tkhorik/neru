@@ -16,8 +16,8 @@ Key mappings (warpd convention):
 
 Navigation:
   - Press cell key to narrow selection
-  - Press backspace to backtrack
-  - Press reset key (default: comma) to start over
+  - Press configured backtrack key (default: backspace/delete) to backtrack
+  - Press reset key (default: space) to start over
   - Press exit key (default: escape) to exit mode
 
 Examples:

@@ -362,6 +362,18 @@ func (h *Handler) UpdateConfig(config *configpkg.Config) {
 
 	h.config = config
 
+	if h.hints != nil && h.hints.Context.Manager() != nil {
+		h.hints.Context.Manager().SetBacktrackKey(config.General.BacktrackKey)
+	}
+
+	if h.grid != nil && h.grid.Manager != nil {
+		h.grid.Manager.SetBacktrackKey(config.General.BacktrackKey)
+	}
+
+	if h.recursiveGrid != nil && h.recursiveGrid.Manager != nil {
+		h.recursiveGrid.Manager.SetBacktrackKey(config.General.BacktrackKey)
+	}
+
 	if h.renderer != nil {
 		h.renderer.UpdateConfig(
 			hints.BuildStyle(config.Hints, h.themeProvider),
